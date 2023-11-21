@@ -1,66 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel + Service Pattern + DTOs
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
 
-## About Laravel
+This repository showcases a Laravel project implementing the Service Pattern along with Data Transfer Objects (DTOs) for handling blog-related operations. The primary goal is to demonstrate a clean and maintainable architecture by separating concerns and promoting reusability.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Components
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Blog Controller
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The `BlogController` is responsible for handling HTTP requests and interacting with the `BlogService`. It uses the Service Pattern to encapsulate business logic and delegates data handling to the `BlogDto`.
 
-## Learning Laravel
+#### Methods:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **store(BlogRequest $request): BlogResource**
+  - Responsible for storing a new blog post.
+  - Utilizes the `BlogDto` to extract and validate data from the incoming `BlogRequest`.
+  - Returns a `BlogResource` representing the newly created blog.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **update(BlogRequest $request, Blog $blog): BlogResource**
+  - Handles updating an existing blog post.
+  - Utilizes the `BlogDto` to extract and validate data from the incoming `BlogRequest`.
+  - Returns a `BlogResource` representing the updated blog.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Blog Service
 
-## Laravel Sponsors
+The `BlogService` encapsulates the business logic related to blog operations. It is responsible for interacting with the database and handling the storage and updating of blog posts.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### Methods:
 
-### Premium Partners
+- **store(BlogDto $dto): Blog**
+  - Creates a new blog post using the provided `BlogDto`.
+  - Returns the created `Blog` instance.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- **update(Blog $blog, BlogDto $dto): Blog**
+  - Updates an existing blog post with data from the provided `BlogDto`.
+  - Returns the updated `Blog` instance.
 
-## Contributing
+### Blog DTO
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The `BlogDto` (Data Transfer Object) is responsible for encapsulating and transferring data between different layers of the application. It is used to validate and structure incoming data from various sources.
 
-## Code of Conduct
+#### Properties:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **title (string):** The title of the blog post.
+- **body (string):** The body/content of the blog post.
+- **source (BlogSource):** An enum representing the source of the blog post (App or Api).
 
-## Security Vulnerabilities
+#### Methods:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **fromAppRequest(AppBlogRequest $request): BlogDto**
+  - Creates a `BlogDto` instance from an application-level request (`AppBlogRequest`).
+  
+- **fromApiRequest(ApiBlogRequest $request): BlogDto**
+  - Creates a `BlogDto` instance from an API-level request (`ApiBlogRequest`).
 
-## License
+## Usage
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+To use this architecture as a foundation for your Laravel projects, follow these steps:
+
+1. **Controller:**
+   - Create a controller that extends the base controller and injects your service.
+
+2. **Service:**
+   - Implement your business logic within a service class.
+
+3. **DTO:**
+   - Define DTOs to encapsulate and validate data transfer between layers.
+
+4. **Routes:**
+   - Define routes in your `web.php` or `api.php` file to map HTTP requests to controller methods.
+
+## Example:
+
+```php
+use App\Http\Controllers\BlogController;
+
+// Define routes for blog operations
+Route::post('/blogs', [BlogController::class, 'store']);
+Route::put('/blogs/{blog}', [BlogController::class, 'update']);
+```
+
+## Note
+
+Ensure you have the necessary dependencies installed and configured, and the database is set up correctly. This repository serves as a guide and starting point for developing scalable and maintainable Laravel applications using the Service Pattern and DTOs. Feel free to customize and expand upon this foundation based on your specific project requirements.
